@@ -9,7 +9,6 @@ import io
 import os
 import re
 from pathlib import Path
-from typing import Optional
 
 import numpy as np
 
@@ -23,7 +22,6 @@ _FNAME_RE = re.compile(
     re.IGNORECASE,
 )
 
-# Friendly labels for ordinary users (product_key → UI)
 _FRIENDLY = {
     "enhanced_visualization": {
         "layer_id": "colour",
@@ -72,6 +70,8 @@ _FRIENDLY = {
     },
 }
 
+_LAYER_ORDER = ("colour", "radar_vv", "radar_vh", "builtup", "colour_mix")
+
 DATASET = {
     "id": "sentinel1_jan2026",
     "title": "Pengerang satellite views",
@@ -85,6 +85,8 @@ DATASET = {
     "attribution": "Sentinel-1 data via Copernicus / ESA. Map basemap © OpenStreetMap contributors.",
 }
 
+_catalog_cache: dict = {"sig": None, "items": None}
+
 
 def raw_dir() -> Path:
     return Path(os.getenv("RASTER_RAW_PATH", str(DEFAULT_RAW))).resolve()
@@ -97,28 +99,17 @@ def _slug(name: str) -> str:
     return f"{clean[:48]}-{h}"
 
 
-def _product_key(product: str) -> str:
-    return re.sub(r"[\s]+", "_", product.strip()).lower().replace("__", "_")
-
-
-def _friendly(key: str, product: str) -> dict:
-    info = _FRIENDLY.get(key)
-    if info:
-        return dict(info)
-    return {
+def _parse(product: str) -> dict:
+    key = re.sub(r"[\s]+", "_", product.strip()).lower().replace("__", "_")
+    friendly = _FRIENDLY.get(key) or {
         "layer_id": key[:32],
         "title": product.replace("_", " "),
         "blurb": "Satellite radar visualization layer.",
     }
-
-
-def _parse(product: str) -> dict:
-    key = _product_key(product)
     pol = None
     m = re.match(r"^(vv|vh)", key)
     if m:
         pol = m.group(1).upper()
-    friendly = _friendly(key, product)
     return {
         "product_key": key,
         "polarization": pol,
@@ -126,9 +117,6 @@ def _parse(product: str) -> dict:
         "title": friendly["title"],
         "blurb": friendly["blurb"],
         "scientifically_calibrated": False,
-        "value_meaning": (
-            "Picture brightness values only — not calibrated scientific measurements."
-        ),
     }
 
 
@@ -140,9 +128,8 @@ def _open_meta(path: Path) -> dict:
         res_x = abs(ds.transform.a)
         res_y = abs(ds.transform.e)
         mid_lat = (b.bottom + b.top) / 2.0
-        m_per_deg_lat = 111_320.0
         m_per_deg_lon = 111_320.0 * abs(np.cos(np.radians(mid_lat)))
-        res_m = (res_x * m_per_deg_lon + res_y * m_per_deg_lat) / 2.0
+        res_m = (res_x * m_per_deg_lon + res_y * 111_320.0) / 2.0
         return {
             "crs": str(ds.crs) if ds.crs else None,
             "width": ds.width,
@@ -161,80 +148,83 @@ def _open_meta(path: Path) -> dict:
         }
 
 
+def _dir_sig(root: Path):
+    if not root.is_dir():
+        return None
+    return tuple(
+        sorted((p.name, p.stat().st_mtime_ns, p.stat().st_size) for p in root.glob("*.tif*"))
+    )
+
+
 def catalog() -> list[dict]:
     root = raw_dir()
-    if not root.is_dir():
-        return []
-    items = []
-    for path in sorted(root.glob("*.tif*")):
-        if path.name.startswith("."):
-            continue
-        m = _FNAME_RE.match(path.name)
-        product = m.group("product") if m else path.stem
-        parsed = _parse(product)
-        try:
-            meta = _open_meta(path)
-        except Exception as e:
-            items.append({"id": _slug(path.name), "filename": path.name, "error": str(e)})
-            continue
-        # uint8 exports are never treated as calibrated
-        parsed["scientifically_calibrated"] = False
-        rid = _slug(path.name)
-        items.append(
-            {
-                "id": rid,
-                "filename": path.name,
-                "dataset": DATASET["id"],
-                "sensor": "Sentinel-1",
-                "acquisition_date": m.group("start") if m else None,
-                "overlay_url": f"/api/rasters/{rid}/overlay.png",
-                **parsed,
-                **meta,
-            }
-        )
+    sig = _dir_sig(root)
+    if _catalog_cache["sig"] == sig and _catalog_cache["items"] is not None:
+        return _catalog_cache["items"]
+
+    items: list[dict] = []
+    if root.is_dir():
+        for path in sorted(root.glob("*.tif*")):
+            if path.name.startswith("."):
+                continue
+            m = _FNAME_RE.match(path.name)
+            product = m.group("product") if m else path.stem
+            parsed = _parse(product)
+            try:
+                meta = _open_meta(path)
+            except Exception as e:
+                items.append({"id": _slug(path.name), "filename": path.name, "error": str(e)})
+                continue
+            rid = _slug(path.name)
+            items.append(
+                {
+                    "id": rid,
+                    "filename": path.name,
+                    "dataset": DATASET["id"],
+                    "sensor": "Sentinel-1",
+                    "acquisition_date": m.group("start") if m else None,
+                    "overlay_url": f"/api/rasters/{rid}/overlay.png",
+                    **parsed,
+                    **meta,
+                }
+            )
+
+    _catalog_cache["sig"] = sig
+    _catalog_cache["items"] = items
     return items
 
 
-def get_by_id(raster_id: str) -> Optional[dict]:
+def get_by_id(raster_id: str) -> dict | None:
     for item in catalog():
         if item.get("id") == raster_id and "error" not in item:
             return item
     return None
 
 
-def path_for_id(raster_id: str) -> Optional[Path]:
+def path_for_id(raster_id: str) -> Path | None:
     item = get_by_id(raster_id)
     return (raw_dir() / item["filename"]) if item else None
 
 
 def layers_for_ui() -> list[dict]:
-    """Unique layer types available on both dates when possible."""
-    items = [i for i in catalog() if "error" not in i]
     by_layer: dict[str, dict] = {}
-    for i in items:
+    for i in catalog():
+        if "error" in i:
+            continue
         lid = i["layer_id"]
         entry = by_layer.setdefault(
             lid,
-            {
-                "layer_id": lid,
-                "title": i["title"],
-                "blurb": i["blurb"],
-                "dates": {},
-            },
+            {"layer_id": lid, "title": i["title"], "blurb": i["blurb"], "dates": {}},
         )
         entry["dates"][i["acquisition_date"]] = i["id"]
-    # Prefer layers that exist on at least one date; sort with colour first
-    order = ["colour", "radar_vv", "radar_vh", "builtup", "colour_mix"]
-    out = list(by_layer.values())
 
     def sort_key(x):
         try:
-            return (0, order.index(x["layer_id"]))
+            return (0, _LAYER_ORDER.index(x["layer_id"]))
         except ValueError:
             return (1, x["title"])
 
-    out.sort(key=sort_key)
-    return out
+    return sorted(by_layer.values(), key=sort_key)
 
 
 def render_overlay_png(raster_id: str, max_dim: int = 1600) -> bytes:
@@ -268,13 +258,13 @@ def render_overlay_png(raster_id: str, max_dim: int = 1600) -> bytes:
             rgb = np.where(valid, flat, 0).astype("uint8")
 
         alpha = np.where(np.any(rgb > 0, axis=2), 255, 0).astype("uint8")
-        img = Image.fromarray(np.dstack([rgb, alpha]))
         buf = io.BytesIO()
-        img.save(buf, format="PNG", optimize=True)
+        Image.fromarray(np.dstack([rgb, alpha])).save(buf, format="PNG", optimize=True)
         return buf.getvalue()
 
 
 def validate_pair(before_id: str, after_id: str) -> dict:
+    """Gate quantitative analysis; current files are visual-only."""
     a = get_by_id(before_id)
     b = get_by_id(after_id)
     if not a or not b:
@@ -288,8 +278,9 @@ def validate_pair(before_id: str, after_id: str) -> dict:
         and a.get("transform") == b.get("transform")
         and a.get("bbox") == b.get("bbox")
     )
-    calibrated = a["scientifically_calibrated"] and b["scientifically_calibrated"]
-    scientific_ok = calibrated and same_grid
+    scientific_ok = (
+        a["scientifically_calibrated"] and b["scientifically_calibrated"] and same_grid
+    )
     return {
         "before_id": a["id"],
         "after_id": b["id"],

@@ -1,11 +1,13 @@
 # MVP status
+
 | Feature | Status |
 |---|---|
 | Map + Sentinel-1 Jan 2026 overlays | Working |
-| Date + layer selection (plain language) | Working |
+| Date + layer selection | Working |
+| Strength / compare dock (mobile) + desktop sidebar | Working |
 | Before/after swipe (visual only) | Working |
-| Opacity control + explanations | Working |
+| Opacity control + plain-language explanations | Working |
 | PWA install shell | Working |
-| Science helpers in `science.py` | Kept (library/tests; not exposed in UI) |
-| NISAR / FIRMS / Aug incident story | Removed from MVP |
-| Quantitative dB / fire analysis | Not offered (data is uint8 visualization) |
+| Catalog cache + pair validation gate | Working |
+| Quantitative dB / fire analysis | Not offered (uint8 visualization data) |
+| NISAR / FIRMS / August incident UI | Removed |

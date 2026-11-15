@@ -284,18 +284,16 @@
     });
   }
 
-  $$(".dock-swipe").forEach((el) => {
-    el.addEventListener("input", onSwipeInput);
-    ["pointerdown", "touchstart", "mousedown"].forEach((evt) => {
-      el.addEventListener(evt, (ev) => ev.stopPropagation(), { passive: true });
+  function bindSlider(selector, onInput) {
+    $$(selector).forEach((el) => {
+      el.addEventListener("input", onInput);
+      ["pointerdown", "touchstart", "mousedown"].forEach((evt) => {
+        el.addEventListener(evt, (ev) => ev.stopPropagation(), { passive: true });
+      });
     });
-  });
-  $$(".dock-opacity").forEach((el) => {
-    el.addEventListener("input", onOpacityInput);
-    ["pointerdown", "touchstart", "mousedown"].forEach((evt) => {
-      el.addEventListener(evt, (ev) => ev.stopPropagation(), { passive: true });
-    });
-  });
+  }
+  bindSlider(".dock-swipe", onSwipeInput);
+  bindSlider(".dock-opacity", onOpacityInput);
 
   $("openSidebar").addEventListener("click", openSheet);
   $("closeSidebar").addEventListener("click", closeSheet);

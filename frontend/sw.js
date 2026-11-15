@@ -1,4 +1,4 @@
-const CACHE = "pew-mvp-v4-compact-dock";
+const CACHE = "pew-mvp-v5-clean";
 const SHELL = ["./", "./index.html", "./css/app.css", "./js/app.js", "./manifest.webmanifest", "./icons/icon.svg"];
 
 self.addEventListener("install", (e) => {

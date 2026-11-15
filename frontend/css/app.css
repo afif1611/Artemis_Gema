@@ -229,14 +229,6 @@ body {
   white-space: normal;
 }
 
-.dock-handle {
-  width: 40px;
-  height: 4px;
-  border-radius: 999px;
-  background: #334155;
-  margin: 0 auto 0.65rem;
-}
-
 .sheet-backdrop {
   position: absolute;
   inset: 0;
@@ -262,7 +254,6 @@ body {
   .control-dock {
     display: none !important;
   }
-  .dock-handle,
   .sheet-backdrop {
     display: none !important;
   }
@@ -351,8 +342,6 @@ body {
     width: 26px;
     height: 26px;
   }
-
-  .dock-handle { display: none; }
 
   /* Bottom sheet for date / layer / explain */
   .sidebar {
