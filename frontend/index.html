@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0f172a">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="description" content="Explore satellite radar pictures of Pengerang, Johor — 23 and 24 January 2026">
+  <title>Pengerang EarthWatch</title>
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="icon" href="./icons/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="./icons/icon.svg">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css">
+  <link rel="stylesheet" href="./css/app.css">
+</head>
+<body>
+  <div class="app" id="app">
+    <aside class="sidebar" id="sidebar" aria-label="Settings">
+      <div class="sidebar-head">
+        <div class="brand">
+          <img src="./icons/icon.svg" width="36" height="36" alt="">
+          <div>
+            <h1 class="h5 mb-0">Pengerang EarthWatch</h1>
+            <div class="text-secondary small">Satellite map · Johor</div>
+          </div>
+        </div>
+        <button type="button" class="btn btn-sm btn-outline-secondary d-lg-none" id="closeSidebar" aria-label="Close settings">
+          <i data-lucide="x" width="18" height="18"></i>
+        </button>
+      </div>
+
+      <div id="emptyState" class="alert alert-warning d-none" role="status">
+        No satellite pictures found. Add GeoTIFF files to <code>data/raw/sentinel1-jan2026/</code> and refresh.
+      </div>
+
+      <section class="panel">
+        <h2 class="panel-title"><i data-lucide="calendar" width="16" height="16"></i> Date</h2>
+        <div class="btn-group w-100 date-group" role="group" aria-label="Choose date">
+          <input type="radio" class="btn-check" name="date" id="date23" value="2026-01-23" checked>
+          <label class="btn btn-outline-light" for="date23">23 Jan 2026</label>
+          <input type="radio" class="btn-check" name="date" id="date24" value="2026-01-24">
+          <label class="btn btn-outline-light" for="date24">24 Jan 2026</label>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2 class="panel-title"><i data-lucide="layers" width="16" height="16"></i> What to show</h2>
+        <select id="layerSelect" class="form-select" aria-label="Layer type"></select>
+      </section>
+
+      <!-- Desktop: both controls always available -->
+      <section class="panel desktop-dock d-none d-lg-block" id="desktopDock">
+        <h2 class="panel-title"><i data-lucide="columns-2" width="16" height="16"></i> Compare days</h2>
+        <div class="form-check form-switch mb-2">
+          <input class="form-check-input dock-compare" type="checkbox" id="compareToggleDesktop" role="switch">
+          <label class="form-check-label" for="compareToggleDesktop">Compare 23 vs 24 Jan</label>
+        </div>
+        <div class="slider-block">
+          <div class="slider-label">
+            <span>Before / after</span>
+            <span class="swipe-val">50%</span>
+          </div>
+          <input type="range" class="form-range touch-slider dock-swipe" id="swipeDesktop" min="0" max="100" value="50" disabled aria-label="Before after slider">
+          <div class="d-flex justify-content-between small text-secondary slider-ends">
+            <span>23 Jan</span><span>24 Jan</span>
+          </div>
+        </div>
+        <div class="slider-block mt-2">
+          <div class="slider-label">
+            <span>Picture strength</span>
+            <span class="opacity-val">85%</span>
+          </div>
+          <input type="range" class="form-range touch-slider dock-opacity" id="opacityDesktop" min="15" max="100" value="85" aria-label="Overlay opacity">
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2 class="panel-title"><i data-lucide="info" width="16" height="16"></i> What am I looking at?</h2>
+        <div id="explain" class="explain card-soft">
+          Open the app and pick a date and layer to explore Pengerang from space.
+        </div>
+      </section>
+
+      <details class="panel more">
+        <summary class="more-summary">More about this data</summary>
+        <div id="about" class="small text-secondary mt-2"></div>
+      </details>
+
+      <p class="attrib small text-secondary mt-auto mb-0" id="attrib"></p>
+    </aside>
+
+    <main class="map-pane">
+      <div id="map" role="application" aria-label="Map of Pengerang"></div>
+      <div id="toast" class="map-toast d-none" role="status"></div>
+      <button type="button" class="sheet-backdrop d-lg-none" id="sheetBackdrop" hidden aria-label="Dismiss settings"></button>
+
+      <!-- Compact mobile dock: one mode + one slider -->
+      <section class="control-dock" id="controlDock" aria-label="Map controls">
+        <div class="dock-row">
+          <div class="btn-group dock-mode" role="group" aria-label="Control mode">
+            <input type="radio" class="btn-check" name="dockMode" id="modeStrength" value="strength" checked>
+            <label class="btn btn-outline-light btn-sm" for="modeStrength">Strength</label>
+            <input type="radio" class="btn-check" name="dockMode" id="modeCompare" value="compare">
+            <label class="btn btn-outline-light btn-sm" for="modeCompare">Compare</label>
+          </div>
+          <button type="button" class="btn btn-outline-light btn-sm dock-settings" id="openSidebar" aria-label="Date and layer">
+            <i data-lucide="sliders-horizontal" width="16" height="16"></i>
+          </button>
+        </div>
+
+        <div class="slider-block dock-panel" id="panelStrength" data-mode="strength">
+          <div class="slider-label">
+            <span>Picture strength</span>
+            <span class="opacity-val" id="opacityVal">85%</span>
+          </div>
+          <input type="range" class="form-range touch-slider dock-opacity" id="opacity" min="15" max="100" value="85" aria-label="Overlay opacity">
+        </div>
+
+        <div class="slider-block dock-panel d-none" id="panelCompare" data-mode="compare">
+          <div class="slider-label">
+            <span>23 Jan ← → 24 Jan</span>
+            <span class="swipe-val" id="swipeVal">50%</span>
+          </div>
+          <input type="range" class="form-range touch-slider dock-swipe" id="swipe" min="0" max="100" value="50" aria-label="Before after slider">
+        </div>
+
+        <!-- Keep a hidden compare checkbox for sync with desktop -->
+        <input type="checkbox" class="dock-compare visually-hidden" id="compareToggle" tabindex="-1" aria-hidden="true">
+      </section>
+    </main>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lucide@0.468.0/dist/umd/lucide.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
+  <script src="./js/app.js"></script>
+</body>
+</html>

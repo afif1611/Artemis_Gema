@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="Pengerang EarthWatch">
+  <defs>
+    <radialGradient id="g" cx="35%" cy="30%" r="70%">
+      <stop offset="0%" stop-color="#5eead4"/>
+      <stop offset="55%" stop-color="#0e7490"/>
+      <stop offset="100%" stop-color="#0b1220"/>
+    </radialGradient>
+  </defs>
+  <rect width="128" height="128" rx="28" fill="#0b1220"/>
+  <circle cx="64" cy="64" r="42" fill="url(#g)"/>
+  <path d="M28 78c18-22 38-28 72-20" fill="none" stroke="#e8eef7" stroke-width="4" stroke-linecap="round" opacity=".85"/>
+  <circle cx="86" cy="50" r="5" fill="#f0b429"/>
+</svg>

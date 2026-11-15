@@ -1,0 +1,417 @@
+:root {
+  --bg: #0f172a;
+  --panel: #111827;
+  --panel-elevated: rgba(17, 24, 39, 0.96);
+  --line: #1f2a3d;
+  --text: #e5e7eb;
+  --muted: #9ca3af;
+  --accent: #38bdf8;
+  --sidebar-w: 340px;
+  --dock-h: 108px;
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html, body {
+  height: 100%;
+  margin: 0;
+  overscroll-behavior: none;
+}
+
+body {
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  overflow: hidden;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.app {
+  display: grid;
+  grid-template-columns: var(--sidebar-w) 1fr;
+  height: 100vh;
+  height: 100dvh;
+  max-height: 100dvh;
+  overflow: hidden;
+}
+
+.sidebar {
+  background: var(--panel);
+  border-right: 1px solid var(--line);
+  padding: 1rem 1rem calc(1.25rem + var(--safe-bottom));
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  -webkit-overflow-scrolling: touch;
+}
+
+.sidebar-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.brand {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  min-width: 0;
+}
+
+.panel {
+  border-top: 1px solid var(--line);
+  padding: 0.9rem 0;
+}
+
+.panel-title {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin: 0 0 0.65rem;
+}
+
+.card-soft {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--line);
+  border-radius: 0.75rem;
+  padding: 0.85rem 0.95rem;
+  font-size: 0.92rem;
+  line-height: 1.45;
+}
+
+.explain strong { color: #fff; }
+
+.btn-outline-light {
+  border-color: var(--line);
+  color: var(--text);
+}
+.btn-check:checked + .btn-outline-light {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #0f172a;
+}
+
+.date-group .btn {
+  min-height: 44px;
+  font-size: 0.9rem;
+}
+
+.form-select {
+  background-color: #0b1220;
+  color: var(--text);
+  border-color: var(--line);
+  min-height: 44px;
+}
+.form-select:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 0.2rem rgba(56, 189, 248, 0.2);
+}
+
+.form-check-input {
+  width: 2.5em;
+  height: 1.35em;
+  margin-top: 0.15em;
+  cursor: pointer;
+}
+.form-check-input:checked {
+  background-color: var(--accent);
+  border-color: var(--accent);
+}
+.form-check-label {
+  padding-left: 0.25rem;
+  user-select: none;
+}
+
+.slider-block { touch-action: none; }
+.slider-label {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.8rem;
+  color: var(--muted);
+  margin-bottom: 0.25rem;
+}
+.slider-ends { pointer-events: none; }
+
+.touch-slider {
+  width: 100%;
+  height: 2rem;
+  padding: 0;
+  margin: 0;
+  background: transparent;
+  touch-action: none;
+  -webkit-appearance: none;
+  appearance: none;
+  cursor: pointer;
+}
+.touch-slider:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.touch-slider::-webkit-slider-runnable-track {
+  height: 8px;
+  border-radius: 999px;
+  background: #1f2a3d;
+}
+.touch-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 28px;
+  height: 28px;
+  margin-top: -10px;
+  border-radius: 50%;
+  background: var(--accent);
+  border: 3px solid #0f172a;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+}
+.touch-slider::-moz-range-track {
+  height: 8px;
+  border-radius: 999px;
+  background: #1f2a3d;
+}
+.touch-slider::-moz-range-thumb {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--accent);
+  border: 3px solid #0f172a;
+}
+
+.more-summary {
+  cursor: pointer;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+.attrib { padding-top: 0.75rem; border-top: 1px solid var(--line); }
+
+.map-pane {
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+  background: #020617;
+  overflow: hidden;
+  touch-action: none;
+}
+#map {
+  position: absolute;
+  inset: 0;
+  touch-action: none;
+}
+
+.map-toast {
+  position: absolute;
+  z-index: 1000;
+  left: 50%;
+  top: calc(0.85rem + var(--safe-top));
+  transform: translateX(-50%);
+  max-width: min(90vw, 320px);
+  background: rgba(15, 23, 42, 0.92);
+  border: 1px solid var(--line);
+  color: var(--text);
+  padding: 0.45rem 0.9rem;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  text-align: center;
+  pointer-events: none;
+  white-space: normal;
+}
+
+.dock-handle {
+  width: 40px;
+  height: 4px;
+  border-radius: 999px;
+  background: #334155;
+  margin: 0 auto 0.65rem;
+}
+
+.sheet-backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 1150;
+  background: rgba(2, 6, 23, 0.55);
+  border: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+}
+.sheet-backdrop[hidden] {
+  display: none !important;
+}
+
+.leaflet-container {
+  background: #020617;
+  font: inherit;
+  touch-action: none;
+}
+
+/* Desktop: hide mobile dock; sliders live in sidebar */
+@media (min-width: 992px) {
+  .control-dock {
+    display: none !important;
+  }
+  .dock-handle,
+  .sheet-backdrop {
+    display: none !important;
+  }
+}
+
+/* Mobile / tablet */
+@media (max-width: 991.98px) {
+  .app {
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr;
+  }
+
+  .map-pane {
+    height: 100%;
+    width: 100%;
+  }
+
+  .control-dock {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1200;
+    margin: 0;
+    padding: 0.45rem 0.75rem calc(0.45rem + var(--safe-bottom));
+    padding-left: max(0.75rem, var(--safe-left));
+    padding-right: max(0.75rem, var(--safe-right));
+    border-top: 1px solid var(--line);
+    border-radius: 14px 14px 0 0;
+    background: var(--panel-elevated);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    box-shadow: 0 -8px 28px rgba(0, 0, 0, 0.35);
+    touch-action: none;
+    overscroll-behavior: contain;
+  }
+
+  .dock-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.35rem;
+  }
+
+  .dock-mode {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  .dock-mode .btn {
+    flex: 1 1 0;
+    min-height: 36px;
+    padding: 0.35rem 0.5rem;
+    font-size: 0.82rem;
+    font-weight: 600;
+  }
+
+  .dock-settings {
+    flex: 0 0 auto;
+    min-width: 40px;
+    min-height: 36px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.35rem;
+  }
+
+  .control-dock .dock-panel {
+    margin: 0;
+  }
+
+  .control-dock .slider-label {
+    font-size: 0.75rem;
+    margin-bottom: 0.1rem;
+  }
+
+  .control-dock .touch-slider {
+    height: 1.65rem;
+  }
+  .control-dock .touch-slider::-webkit-slider-thumb {
+    width: 26px;
+    height: 26px;
+    margin-top: -9px;
+  }
+  .control-dock .touch-slider::-moz-range-thumb {
+    width: 26px;
+    height: 26px;
+  }
+
+  .dock-handle { display: none; }
+
+  /* Bottom sheet for date / layer / explain */
+  .sidebar {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    top: auto;
+    z-index: 1300;
+    width: 100%;
+    max-height: min(70dvh, 520px);
+    padding: 0.85rem 1rem calc(1rem + var(--safe-bottom) + var(--dock-h));
+    padding-left: max(1rem, var(--safe-left));
+    padding-right: max(1rem, var(--safe-right));
+    border-right: 0;
+    border-top: 1px solid var(--line);
+    border-radius: 16px 16px 0 0;
+    transform: translateY(110%);
+    transition: transform 0.22s ease;
+    box-shadow: 0 -12px 40px rgba(0, 0, 0, 0.45);
+  }
+
+  .sidebar.open {
+    transform: translateY(0);
+  }
+
+  .leaflet-bottom {
+    bottom: calc(var(--dock-h) + 8px) !important;
+  }
+  .leaflet-top {
+    top: calc(8px + var(--safe-top)) !important;
+  }
+  .leaflet-left {
+    left: max(8px, var(--safe-left)) !important;
+  }
+  .leaflet-right {
+    right: max(8px, var(--safe-right)) !important;
+  }
+
+  .map-toast {
+    top: calc(0.65rem + var(--safe-top));
+  }
+}
+
+@media (max-width: 991.98px) and (orientation: landscape) and (max-height: 500px) {
+  :root { --dock-h: 88px; }
+  .control-dock {
+    padding-top: 0.3rem;
+    padding-bottom: calc(0.3rem + var(--safe-bottom));
+  }
+  .dock-mode .btn,
+  .dock-settings {
+    min-height: 32px;
+    font-size: 0.78rem;
+  }
+  .control-dock .touch-slider {
+    height: 1.4rem;
+  }
+  .sidebar {
+    max-height: 88dvh;
+  }
+}
