@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#0f172a">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="description" content="Explore satellite radar pictures of Pengerang, Johor — 23 and 24 January 2026">
+  <meta name="description" content="Explore Sentinel-1 radar of Pengerang, Johor — August–September 2026">
   <title>Pengerang EarthWatch</title>
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="icon" href="./icons/icon.svg" type="image/svg+xml">
@@ -22,7 +22,7 @@
           <img src="./icons/icon.svg" width="36" height="36" alt="">
           <div>
             <h1 class="h5 mb-0">Pengerang EarthWatch</h1>
-            <div class="text-secondary small">Satellite map · Johor</div>
+            <div class="text-secondary small">Observe · Investigate · Understand</div>
           </div>
         </div>
         <button type="button" class="btn btn-sm btn-outline-secondary d-lg-none" id="closeSidebar" aria-label="Close settings">
@@ -31,16 +31,16 @@
       </div>
 
       <div id="emptyState" class="alert alert-warning d-none" role="status">
-        No satellite pictures found. Add GeoTIFF files to <code>data/raw/sentinel1-jan2026/</code> and refresh.
+        No satellite pictures found. Add GeoTIFF files to <code>data/raw/sentinel1-aug2026/</code> and refresh.
       </div>
 
       <section class="panel">
         <h2 class="panel-title"><i data-lucide="calendar" width="16" height="16"></i> Date</h2>
         <div class="btn-group w-100 date-group" role="group" aria-label="Choose date">
-          <input type="radio" class="btn-check" name="date" id="date23" value="2026-01-23" checked>
-          <label class="btn btn-outline-light" for="date23">23 Jan 2026</label>
-          <input type="radio" class="btn-check" name="date" id="date24" value="2026-01-24">
-          <label class="btn btn-outline-light" for="date24">24 Jan 2026</label>
+          <input type="radio" class="btn-check" name="date" id="dateBefore" value="" checked>
+          <label class="btn btn-outline-light" for="dateBefore">Before</label>
+          <input type="radio" class="btn-check" name="date" id="dateAfter" value="">
+          <label class="btn btn-outline-light" for="dateAfter">After</label>
         </div>
       </section>
 
@@ -54,7 +54,7 @@
         <h2 class="panel-title"><i data-lucide="columns-2" width="16" height="16"></i> Compare days</h2>
         <div class="form-check form-switch mb-2">
           <input class="form-check-input dock-compare" type="checkbox" id="compareToggleDesktop" role="switch">
-          <label class="form-check-label" for="compareToggleDesktop">Compare 23 vs 24 Jan</label>
+          <label class="form-check-label" for="compareToggleDesktop">Compare before vs after</label>
         </div>
         <div class="slider-block">
           <div class="slider-label">
@@ -63,7 +63,7 @@
           </div>
           <input type="range" class="form-range touch-slider dock-swipe" id="swipeDesktop" min="0" max="100" value="50" disabled aria-label="Before after slider">
           <div class="d-flex justify-content-between small text-secondary slider-ends">
-            <span>23 Jan</span><span>24 Jan</span>
+            <span class="swipe-end-before">Before</span><span class="swipe-end-after">After</span>
           </div>
         </div>
         <div class="slider-block mt-2">
@@ -119,7 +119,7 @@
 
         <div class="slider-block dock-panel d-none" id="panelCompare" data-mode="compare">
           <div class="slider-label">
-            <span>23 Jan ← → 24 Jan</span>
+            <span>Before ← → After</span>
             <span class="swipe-val" id="swipeVal">50%</span>
           </div>
           <input type="range" class="form-range touch-slider dock-swipe" id="swipe" min="0" max="100" value="50" aria-label="Before after slider">

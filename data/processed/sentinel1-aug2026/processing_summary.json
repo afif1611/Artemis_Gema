@@ -1,0 +1,64 @@
+{
+  "status": "ready",
+  "validation": {
+    "ok": true,
+    "issues": [],
+    "same_grid": true,
+    "crs": "EPSG:32648",
+    "shape": [
+      665,
+      1114
+    ],
+    "dtype": "float32",
+    "nodata": -9999.0,
+    "bounds": [
+      399860.0,
+      147000.0,
+      422140.0,
+      160300.0
+    ]
+  },
+  "difference": {
+    "path": "/Users/farhanaizek/Development/pengerang-earthwatch 2/data/processed/sentinel1-aug2026/Pengerang_S1_VH_diff_after_minus_before_20m.tif",
+    "valid_pixels": null,
+    "min_db": null,
+    "max_db": null,
+    "mean_db": null,
+    "reused": true
+  },
+  "scenes": {
+    "before": {
+      "phase": "before",
+      "requested_date": "2026-08-23",
+      "actual_date_utc": "2026-08-23",
+      "acquisition_time_utc": "2026-08-23T22:47:20+00:00",
+      "date_status": "exact",
+      "scene_id": "S1D_IW_GRDH_1SDV_20260823T224720_20260823T224745_004259_007D53_FF97",
+      "orbit_pass": "DESCENDING",
+      "relative_orbit": "18",
+      "platform": "D",
+      "polarization": "VH",
+      "units": "dB",
+      "crs": "EPSG:32648",
+      "output_pixel_spacing_m": "20",
+      "filename": "Pengerang_S1_VH_before_2026-08-23_S1D_IW_GRDH_1SDV_20260823T224720_20260823T224745_004259_007D53_FF97_20m.tif"
+    },
+    "after": {
+      "phase": "after",
+      "requested_date": "2026-09-04",
+      "actual_date_utc": "2026-09-04",
+      "acquisition_time_utc": "2026-09-04T22:47:20+00:00",
+      "date_status": "exact",
+      "scene_id": "S1D_IW_GRDH_1SDV_20260904T224720_20260904T224745_004434_008374_0887",
+      "orbit_pass": "DESCENDING",
+      "relative_orbit": "18",
+      "platform": "D",
+      "polarization": "VH",
+      "units": "dB",
+      "crs": "EPSG:32648",
+      "output_pixel_spacing_m": "20",
+      "filename": "Pengerang_S1_VH_after_2026-09-04_S1D_IW_GRDH_1SDV_20260904T224720_20260904T224745_004434_008374_0887_20m.tif"
+    }
+  },
+  "interpretation": "Difference is calibrated VH backscatter change in dB (after \u2212 before). It is not a confirmed burn, fire perimeter, or damage map."
+}

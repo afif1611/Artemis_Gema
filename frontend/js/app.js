@@ -5,7 +5,11 @@
   const state = {
     layers: [],
     dataset: null,
-    date: "2026-01-23",
+    date: null,
+    beforeDate: null,
+    afterDate: null,
+    beforeLabel: null,
+    afterLabel: null,
     layerId: null,
     compare: false,
     dockMode: "strength", // mobile: strength | compare
@@ -14,6 +18,7 @@
     beforeOverlay: null,
     afterOverlay: null,
     singleOverlay: null,
+    aoiLayer: null,
   };
 
   const isMobile = () => window.matchMedia("(max-width: 991.98px)").matches;
@@ -97,16 +102,78 @@
     });
   }
 
+  function applyStudyPeriodLabels() {
+    const before = state.beforeLabel || "Before";
+    const after = state.afterLabel || "After";
+    const beforeShort = before.replace(/ 20\d{2}$/, "");
+    const afterShort = after.replace(/ 20\d{2}$/, "");
+
+    const dateBefore = $("dateBefore");
+    const dateAfter = $("dateAfter");
+    const labelBefore = document.querySelector('label[for="dateBefore"]');
+    const labelAfter = document.querySelector('label[for="dateAfter"]');
+    if (dateBefore && state.beforeDate) {
+      dateBefore.value = state.beforeDate;
+      dateBefore.checked = state.date === state.beforeDate;
+    }
+    if (dateAfter && state.afterDate) {
+      dateAfter.value = state.afterDate;
+      dateAfter.checked = state.date === state.afterDate;
+    }
+    if (labelBefore) labelBefore.textContent = before;
+    if (labelAfter) labelAfter.textContent = after;
+
+    const compareLabel = document.querySelector('label[for="compareToggleDesktop"]');
+    if (compareLabel) compareLabel.textContent = `Compare ${beforeShort} vs ${afterShort}`;
+
+    $$(".swipe-end-before").forEach((el) => {
+      el.textContent = beforeShort;
+    });
+    $$(".swipe-end-after").forEach((el) => {
+      el.textContent = afterShort;
+    });
+    const mobileSwipe = $("panelCompare")?.querySelector(".slider-label span");
+    if (mobileSwipe) mobileSwipe.textContent = `${beforeShort} ← → ${afterShort}`;
+  }
+
+  function workflowStep() {
+    if (state.compare || state.layerId === "radar_vh_diff") return "Investigate";
+    return "Observe";
+  }
+
   function updateExplain(extra) {
     const meta = currentLayerMeta();
     if (!meta) {
       $("explain").textContent = "Choose a layer to see a short explanation.";
       return;
     }
+    const before = state.beforeLabel || "before";
+    const after = state.afterLabel || "after";
+    const step = workflowStep();
     const compareNote = state.compare
-      ? `<p class="mb-0 mt-2 text-secondary">Comparing <strong>23 Jan</strong> (left) with <strong>24 Jan</strong> (right). Visual only — not a fire or damage score.</p>`
-      : `<p class="mb-0 mt-2 text-secondary">Showing <strong>${state.date === "2026-01-23" ? "23" : "24"} January 2026</strong>.</p>`;
-    $("explain").innerHTML = `<strong>${meta.title}</strong><p class="mb-0 mt-1">${meta.blurb}</p>${compareNote}${extra || ""}`;
+      ? `<p class="mb-0 mt-2 text-secondary"><strong>Investigate:</strong> comparing <strong>${before}</strong> (left) with <strong>${after}</strong> (right). Radar change is not confirmed fire damage.</p>`
+      : `<p class="mb-0 mt-2 text-secondary"><strong>${step}:</strong> showing <strong>${state.date === state.beforeDate ? before : after}</strong>.</p>`;
+    const understand =
+      `<p class="mb-0 mt-2 text-secondary"><strong>Understand:</strong> backscatter change can reflect moisture, vegetation, or land use — not only fire.</p>`;
+    $("explain").innerHTML = `<strong>${meta.title}</strong><p class="mb-0 mt-1">${meta.blurb}</p>${compareNote}${understand}${extra || ""}`;
+  }
+
+  function drawStudyAoi(aoi) {
+    if (state.aoiLayer) {
+      map.removeLayer(state.aoiLayer);
+      state.aoiLayer = null;
+    }
+    if (!aoi) return;
+    const bounds = L.latLngBounds([aoi.south, aoi.west], [aoi.north, aoi.east]);
+    state.aoiLayer = L.rectangle(bounds, {
+      color: "#f0b429",
+      weight: 1.5,
+      dashArray: "6 4",
+      fill: false,
+      interactive: false,
+    })
+      .bindTooltip(aoi.name || "Search AOI (not a fire perimeter)", { sticky: true })
+      .addTo(map);
   }
 
   function syncSwipeUI(val) {
@@ -132,7 +199,6 @@
       el.checked = enabled;
     });
     $$(".dock-swipe").forEach((el) => {
-      // Mobile swipe is always enabled in compare panel; desktop disables until compare on
       if (el.id === "swipeDesktop") el.disabled = !enabled;
       else el.disabled = false;
     });
@@ -172,11 +238,19 @@
 
     try {
       if (state.compare) {
-        const beforeId = meta.dates["2026-01-23"];
-        const afterId = meta.dates["2026-01-24"];
+        const beforeId = meta.dates[state.beforeDate];
+        const afterId = meta.dates[state.afterDate];
         if (!beforeId || !afterId) {
           toast("This layer is not available on both days.", true);
           setTimeout(() => toast("", false), 2500);
+          setDockMode("strength", { applyView: false });
+          await showView();
+          return;
+        }
+        // Difference product is a single derived map — not a two-date swipe pair
+        if (beforeId === afterId || meta.layer_id === "radar_vh_diff") {
+          toast("Change layer is one difference map — use Strength to view it.", true);
+          setTimeout(() => toast("", false), 2800);
           setDockMode("strength", { applyView: false });
           await showView();
           return;
@@ -224,7 +298,8 @@
   function fillLayerSelect() {
     const sel = $("layerSelect");
     sel.innerHTML = state.layers.map((l) => `<option value="${l.layer_id}">${l.title}</option>`).join("");
-    const prefer = state.layers.find((l) => l.layer_id === "colour") || state.layers[0];
+    const preferId = state.dataset?.default_layer_id || "radar_vh_db";
+    const prefer = state.layers.find((l) => l.layer_id === preferId) || state.layers[0];
     if (prefer) {
       state.layerId = prefer.layer_id;
       sel.value = prefer.layer_id;
@@ -264,7 +339,6 @@
     });
   });
 
-  // Desktop compare switch
   $("compareToggleDesktop").addEventListener("change", (e) => {
     setDockMode(e.target.checked ? "compare" : "strength");
   });
@@ -335,19 +409,38 @@
       state._rasters = data.rasters || [];
       state.layers = data.dataset.layers || [];
 
-      if (!state.layers.length) {
+      const period = data.dataset.study_period || {};
+      state.beforeDate = period.before_date || null;
+      state.afterDate = period.after_date || null;
+      state.beforeLabel = period.before_label || period.before_date;
+      state.afterLabel = period.after_label || period.after_date;
+      state.date = state.beforeDate || state.afterDate;
+
+      if (!period.complete || !state.layers.length) {
         $("emptyState").classList.remove("d-none");
+        if (!period.complete) {
+          const missing = (period.missing_phases || []).join(", ") || "before/after";
+          $("emptyState").textContent =
+            `Study pair incomplete (missing: ${missing}). Place verified Aug–Sep GeoTIFFs in data/raw/sentinel1-aug2026/ and refresh.`;
+        }
         openSheet();
         toast("", false);
         return;
       }
 
+      applyStudyPeriodLabels();
+      drawStudyAoi(data.dataset.study_aoi);
+
+      const cs = data.dataset.case_study || {};
+      const limits = (data.dataset.limitations || []).map((x) => `<li>${x}</li>`).join("");
       $("about").innerHTML = `
         <p class="mb-2">${data.dataset.plain_note}</p>
-        <p class="mb-1"><strong>Place:</strong> ${data.dataset.place}</p>
-        <p class="mb-1"><strong>Dates:</strong> ${(data.dataset.acquisition_dates || []).join(", ")}</p>
+        <p class="mb-1"><strong>Case study:</strong> ${cs.name || "Pengerang"} — ${cs.location || data.dataset.place}</p>
+        <p class="mb-1"><strong>Reported event:</strong> ${cs.reported_start || "?"} to ${cs.reported_end || "?"}${cs.reported_area_ha != null ? ` · ${cs.reported_area_ha} ha (reported, not satellite-derived)` : ""}</p>
+        <p class="mb-1"><strong>Acquisitions:</strong> ${(data.dataset.acquisition_dates || []).join(", ")}</p>
         <p class="mb-1"><strong>Source:</strong> ${data.dataset.sensor}</p>
-        <p class="mb-0">${data.dataset.count} picture layers loaded.</p>`;
+        <p class="mb-1">${data.dataset.count} calibrated raster product(s) loaded.</p>
+        ${limits ? `<p class="mb-0 mt-2"><strong>Limits:</strong></p><ul class="mb-0 ps-3">${limits}</ul>` : ""}`;
       $("attrib").textContent = data.dataset.attribution;
 
       fillLayerSelect();

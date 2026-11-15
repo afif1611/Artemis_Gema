@@ -25,7 +25,13 @@ class CompareReq(BaseModel):
 
 @app.get("/api/health")
 def health():
-    return {"ok": True}
+    period = R.study_period()
+    return {
+        "ok": True,
+        "study_period_complete": bool(period.get("complete")),
+        "before_date": period.get("before_date"),
+        "after_date": period.get("after_date"),
+    }
 
 
 @app.get("/api/rasters")
