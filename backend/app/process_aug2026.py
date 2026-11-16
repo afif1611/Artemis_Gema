@@ -7,11 +7,11 @@ from __future__ import annotations
 
 import csv
 import json
-import os
 from pathlib import Path
 
 import numpy as np
 
+# Paths are always relative to the repository root (parent of backend/).
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_RAW = PROJECT_ROOT / "data" / "raw" / "sentinel1-aug2026"
 DEFAULT_PROC = PROJECT_ROOT / "data" / "processed" / "sentinel1-aug2026"
@@ -21,11 +21,11 @@ NODATA = -9999.0
 
 
 def raw_dir() -> Path:
-    return Path(os.getenv("RASTER_RAW_PATH", str(DEFAULT_RAW))).resolve()
+    return DEFAULT_RAW.resolve()
 
 
 def proc_dir() -> Path:
-    return Path(os.getenv("RASTER_STORAGE_PATH", str(DEFAULT_PROC))).resolve()
+    return DEFAULT_PROC.resolve()
 
 
 def _read_manifest() -> list[dict]:

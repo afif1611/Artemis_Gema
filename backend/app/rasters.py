@@ -8,12 +8,13 @@ from __future__ import annotations
 import csv
 import hashlib
 import io
-import os
 import re
 from pathlib import Path
 
 import numpy as np
 
+# Paths are always relative to the repository root (parent of backend/),
+# so the app works regardless of OS or where the project is cloned.
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_RAW = PROJECT_ROOT / "data" / "raw" / "sentinel1-aug2026"
 DEFAULT_PROC = PROJECT_ROOT / "data" / "processed" / "sentinel1-aug2026"
@@ -27,11 +28,11 @@ _period_cache: dict | None = None
 
 
 def raw_dir() -> Path:
-    return Path(os.getenv("RASTER_RAW_PATH", str(DEFAULT_RAW))).resolve()
+    return DEFAULT_RAW.resolve()
 
 
 def proc_dir() -> Path:
-    return Path(os.getenv("RASTER_STORAGE_PATH", str(DEFAULT_PROC))).resolve()
+    return DEFAULT_PROC.resolve()
 
 
 def _slug(name: str) -> str:
